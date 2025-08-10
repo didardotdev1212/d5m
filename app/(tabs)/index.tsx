@@ -1,44 +1,51 @@
 import Card from "@/components/Card";
+import useStore from "@/store/filmsstore";
 import React, { useState } from "react";
-import { FlatList, Pressable, Text, TextInput, View } from "react-native";
-
-type FilmType = {
-  id: string;
-  name: string;
-  description: string;
-};
-
+import {
+  FlatList,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 export default function index() {
-  const [Films, setFilms] = useState<FilmType[]>([]);
+  const { films, AddFilm } = useStore();
   const [name, setName] = useState<string>("");
   const [description, setDescription] = useState<string>("");
   const [Error, setError] = useState<string>("");
 
-  const AddFilm = () => {
+  const AddFilmHandler = () => {
     if (name.trim() === "") {
       setError("Name is required");
       return;
     }
-
-    setFilms([
-      ...Films,
-      {
-        id: Math.random().toString(),
-        name: name,
-        description: description,
-      },
-    ]);
+    if (name.length < 3) {
+      setError("Name must be at least 3 characters long");
+      return;
+    }
+    AddFilm({
+      id: Math.random().toString(),
+      name: name,
+      description: description,
+    });
     setName("");
     setDescription("");
     setError("");
   };
 
   return (
-    <View>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
+      style={{ flex: 1 }}
+    >
       <FlatList
-        data={Films}
+        data={films}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => <Card item={item} />}
+        style={{ maxHeight: "80%" }}
       />
       <View className="p-4 bg-white border rounded-lg m-4 border-gray-200">
         <TextInput
@@ -61,10 +68,13 @@ export default function index() {
           numberOfLines={4}
           className="border h-[90px] border-gray-300 p-2 rounded mb-2"
         />
-        <Pressable onPress={AddFilm} className="bg-blue-500 p-2 rounded-lg">
+        <Pressable
+          onPress={AddFilmHandler}
+          className="bg-blue-500 p-2 rounded-lg"
+        >
           <Text className="text-white text-center text-[24px]">Add Film</Text>
         </Pressable>
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
